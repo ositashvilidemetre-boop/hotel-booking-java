@@ -1,30 +1,28 @@
 package com.hotelbooking;
 
 import com.hotelbooking.model.*;
+import com.hotelbooking.pricing.*;
 import java.time.LocalDate;
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
-        Hotel hotel = new Hotel("Grand Budapest", "Budapest", 8.7);
-        hotel.addRoom(new StandardRoom("101", 2, 80));
-        hotel.addRoom(new DeluxeRoom("201", 3, 80, true));
-        hotel.addRoom(new Suite("301", 4, 80, 2));
+        Room room = new DeluxeRoom("201", 3, 80, true); // 115.00 per night
 
-        System.out.println(hotel);
-        for (Room room : hotel.getRooms()) {
-            System.out.println("  " + room);
+        LocalDate shortIn = LocalDate.of(2026, 12, 20);
+        LocalDate shortOut = LocalDate.of(2026, 12, 23);   // 3 nights
+        LocalDate longIn = LocalDate.of(2027, 1, 10);
+        LocalDate longOut = LocalDate.of(2027, 1, 17);     // 7 nights
+
+        List<PricingStrategy> strategies = List.of(
+                new NormalPricing(),
+                new SeasonalPricing(),
+                new LongStayDiscountPricing());
+
+        for (PricingStrategy strategy : strategies) {
+            System.out.println(strategy.getName()
+                    + ": 3 nights = " + String.format("%.2f", strategy.calculateTotal(room, shortIn, shortOut))
+                    + ", 7 nights = " + String.format("%.2f", strategy.calculateTotal(room, longIn, longOut)));
         }
-
-        Guest guest = new Guest("Anna", "anna@example.com");
-        Room room = hotel.getRooms().get(1);
-        LocalDate in = LocalDate.of(2026, 12, 20);
-        LocalDate out = LocalDate.of(2026, 12, 23);
-        Booking booking = new Booking("B1", guest, room, in, out, room.getNightlyPrice() * 3);
-
-        System.out.println(booking);
-        System.out.println("Overlaps 22-25 Dec? "
-                + booking.overlaps(LocalDate.of(2026, 12, 22), LocalDate.of(2026, 12, 25)));
-        System.out.println("Overlaps 23-25 Dec? "
-                + booking.overlaps(LocalDate.of(2026, 12, 23), LocalDate.of(2026, 12, 25)));
     }
 }
