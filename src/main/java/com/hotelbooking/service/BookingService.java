@@ -110,4 +110,11 @@ public class BookingService {
             throw new IllegalArgumentException("No booking with id " + bookingId);
         }
     }
+    public void restoreBooking(Booking booking) {
+        bookings.add(booking);
+        int number = Integer.parseInt(booking.getId().substring(1));
+        if (number >= nextId) {
+            nextId = number + 1;
+        }
+    }
 }
