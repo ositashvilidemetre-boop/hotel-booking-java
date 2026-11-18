@@ -1,32 +1,48 @@
 package com.hotelbooking;
 
-import com.hotelbooking.exception.RoomNotAvailableException;
 import com.hotelbooking.model.*;
 import com.hotelbooking.persistence.DataStorage;
 import com.hotelbooking.persistence.TextFileStorage;
 import com.hotelbooking.service.BookingService;
+import com.hotelbooking.ui.ConsoleUI;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.LocalDate;
+import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws IOException, RoomNotAvailableException {
+    public static void main(String[] args) {
+        BookingService service = new BookingService();
         DataStorage storage = new TextFileStorage(Path.of("data.txt"));
 
-        BookingService first = new BookingService();
-        Hotel hotel = new Hotel("Grand Budapest", "Budapest", 8.7);
-        hotel.addRoom(new StandardRoom("101", 2, 80));
-        hotel.addRoom(new DeluxeRoom("201", 3, 80, true));
-        first.addHotel(hotel);
-        first.book(new Guest("Anna", "anna@example.com"), hotel.getRooms().get(1),
-                LocalDate.of(2026, 12, 20), LocalDate.of(2026, 12, 23));
-        storage.save(first);
-        System.out.println("Saved.");
+        try {
+            storage.load(service);
+        } catch (IOException e) {
+            System.out.println("Could not load saved data: " + e.getMessage());
+        }
 
-        BookingService second = new BookingService();
-        storage.load(second);
-        System.out.println("Loaded hotels: " + second.getHotels());
-        System.out.println("Loaded bookings: " + second.getBookings());
+        if (service.getHotels().isEmpty()) {
+            seedSampleData(service);
+        }
+
+        new ConsoleUI(service, storage, new Scanner(System.in)).start();
+    }
+
+    private static void seedSampleData(BookingService service) {
+        Hotel grand = new Hotel("Grand Budapest", "Budapest", 8.7);
+        grand.addRoom(new StandardRoom("101", 2, 80));
+        grand.addRoom(new DeluxeRoom("201", 3, 80, true));
+        grand.addRoom(new Suite("301", 4, 80, 2));
+
+        Hotel hostel = new Hotel("City Hostel Plus", "Budapest", 7.2);
+        hostel.addRoom(new StandardRoom("11", 2, 50));
+        hostel.addRoom(new StandardRoom("12", 2, 60));
+
+        Hotel vienna = new Hotel("Vienna Palace", "Vienna", 9.1);
+        vienna.addRoom(new Suite("1", 2, 120, 1));
+
+        service.addHotel(grand);
+        service.addHotel(hostel);
+        service.addHotel(vienna);
     }
 }
