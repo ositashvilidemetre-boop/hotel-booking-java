@@ -19,11 +19,13 @@ classDiagram
     }
     class DeluxeRoom {
         -boolean breakfastIncluded
+        +isBreakfastIncluded() boolean
         +getType() String
         +getNightlyPrice() double
     }
     class Suite {
         -int bedrooms
+        +getBedrooms() int
         +getType() String
         +getNightlyPrice() double
     }
@@ -44,59 +46,68 @@ classDiagram
         -LocalDate checkIn
         -LocalDate checkOut
         -double totalPrice
-        +getNights() int
+        +getNights() long
         +overlaps(LocalDate, LocalDate) boolean
     }
     class PricingStrategy {
         <<interface>>
         +calculateTotal(Room, LocalDate, LocalDate) double
+        +getName() String
     }
-    class NormalPricing {
-        +calculateTotal(Room, LocalDate, LocalDate) double
-    }
-    class SeasonalPricing {
-        +calculateTotal(Room, LocalDate, LocalDate) double
-    }
-    class LongStayDiscountPricing {
-        +calculateTotal(Room, LocalDate, LocalDate) double
-    }
+    class NormalPricing
+    class SeasonalPricing
+    class LongStayDiscountPricing
     class BookingService {
         -List~Hotel~ hotels
         -List~Booking~ bookings
         -PricingStrategy pricingStrategy
         +setPricingStrategy(PricingStrategy)
-        +searchAvailable(String, LocalDate, LocalDate) List~Room~
+        +searchHotels(String) List~Hotel~
+        +searchAvailable(String, LocalDate, LocalDate, Comparator) List~Room~
         +book(Guest, Room, LocalDate, LocalDate) Booking
         +cancel(String)
+        +restoreBooking(Booking)
     }
-    class FileStorage {
-        +save(List~Hotel~, List~Booking~)
-        +load()
+    class DataStorage {
+        <<interface>>
+        +save(BookingService)
+        +load(BookingService)
+    }
+    class TextFileStorage {
+        -Path file
     }
     class ConsoleUI {
         +start()
     }
+    class InputReader {
+        +readText(String) String
+        +readInt(String) int
+        +readDate(String) LocalDate
+    }
     class RoomNotAvailableException {
-        <<exception>>
-    }
-    class InvalidBookingException {
-        <<exception>>
-    }
+<<checked exception>>
+}
+class InvalidInputException {
+<<unchecked exception>>
+}
 
-    Room <|-- StandardRoom
-    Room <|-- DeluxeRoom
-    Room <|-- Suite
-    PricingStrategy <|.. NormalPricing
-    PricingStrategy <|.. SeasonalPricing
-    PricingStrategy <|.. LongStayDiscountPricing
-    Hotel "1" *-- "1..*" Room : contains
-    Booking "*" --> "1" Guest : made by
-    Booking "*" --> "1" Room : reserves
-    BookingService "1" o-- "*" Hotel : manages
-    BookingService "1" o-- "*" Booking : keeps
-    BookingService --> PricingStrategy : uses
-    BookingService ..> RoomNotAvailableException : throws
-    BookingService ..> InvalidBookingException : throws
-    ConsoleUI --> BookingService
-    ConsoleUI --> FileStorage
+Room <|-- StandardRoom
+Room <|-- DeluxeRoom
+Room <|-- Suite
+PricingStrategy <|.. NormalPricing
+PricingStrategy <|.. SeasonalPricing
+PricingStrategy <|.. LongStayDiscountPricing
+DataStorage <|.. TextFileStorage
+Hotel "1" *-- "1..*" Room : contains
+Booking "*" --> "1" Guest : made by
+Booking "*" --> "1" Room : reserves
+BookingService "1" o-- "*" Hotel : manages
+BookingService "1" o-- "*" Booking : keeps
+BookingService --> PricingStrategy : uses
+BookingService ..> RoomNotAvailableException : throws
+ConsoleUI --> BookingService
+ConsoleUI --> DataStorage
+ConsoleUI --> InputReader
+InputReader ..> InvalidInputException : throws
+TextFileStorage ..> BookingService : fills
 ```
